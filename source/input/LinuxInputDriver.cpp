@@ -119,6 +119,13 @@ bool LinuxInputDriver::useKeyboardDevice(const std::string &name)
     if (keyboard) {
         ILOG_INFO("Using keyboard device %s", kb_path.c_str());
         keyboardDevice = event;
+        // Without a group, lv_indev_read() drops every keypad event (i->group
+        // == NULL), so physical keys never reach the focused widget.
+        if (!inputGroup) {
+            inputGroup = lv_group_create();
+            lv_group_set_default(inputGroup);
+        }
+        lv_indev_set_group(keyboard, inputGroup);
     } else {
         ILOG_ERROR("Failed to use keyboard device %s", kb_path.c_str());
         keyboardDevice = "none";
